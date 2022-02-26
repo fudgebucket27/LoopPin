@@ -19,9 +19,7 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "APPSETTING_APIKEY": "2b5227bc727ed524abc0",
-        "APPSETTING_APISECRET": "1519014fd17bccb568b0c082962bc8df7de46d8598c1c0b625a9730ce2c7c391e"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "dotnetRunMessages": true
