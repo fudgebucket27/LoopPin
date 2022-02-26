@@ -53,6 +53,13 @@
             errorMessage = "You need to enter an NFT Name and Description";
             return;
         }
+
+        if(e.File.Size > maxFileSize)
+        {
+            errorMessage = "File size too large";
+            return;
+        }
+
         errorMessage = "";
         fileContent = new StreamContent(e.File.OpenReadStream(maxFileSize));
 
@@ -64,9 +71,9 @@
             nftImageFileName = "Uploading NFT Image...";
             isUploading = true;
             pinataNftImageData = await PinataService.SubmitPin(await fileContent.ReadAsByteArrayAsync(), imageGuid);
-            nftImageFileName = "NFT Image Uploaded...";
             if (pinataNftImageData != null)
             {
+                nftImageFileName = "NFT Image Uploaded...";
                 NftMetadata nftMetadata = new NftMetadata
                     {
                         name = nftName,
@@ -90,10 +97,15 @@
                 }
                 else
                 {
-                    nftImageFileName = "NFT Metadata failed to upload...";
+                    nftImageFileName = "NFT Metadata failed to upload...try again";
                 }
 
             }
+            else
+            {
+                nftImageFileName = "NFT Image upload failed...try again";
+            }
+
             isUploading = false;
         }
         else
