@@ -1,0 +1,62 @@
+﻿@page "/"
+@using LoopPin.Models
+@using LoopPin.Services
+@inject PinataService PinataService;
+
+<PageTitle>Loop Pin</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Welcome to Loop Pin</MudText>
+<MudText Typo="Typo.h6">This app will generate an IPFS CID for you to use to mint on Loopring</MudText>
+
+
+<InputFile id="fileInput" OnChange="UploadFiles" hidden />
+<MudFab HtmlTag="label"
+        Disabled="@isUploading"
+        Color="Color.Secondary"
+        Icon="@Icons.Filled.Image"
+        Label="@nftImageFileName"
+        for="fileInput" />
+<br />
+
+
+@if(errorMessage !=null)
+{
+    <MudText Typo="Typo.h6">@errorMessage</MudText>
+}
+
+@if(pinataNftImageData != null)
+{
+    <MudText Typo="Typo.h6">IPFS CID Generated: @pinataNftImageData.IpfsHash</MudText>
+}
+
+
+@code
+{
+    private IBrowserFile nftImagefile;
+    private PinataData pinataNftImageData;
+    long maxFileSize = 1024 * 1024 * 15;
+    private string nftImageFileName = "Upload NFT Image";
+    private string? errorMessage;
+    private bool isUploading;
+    private StreamContent? fileContent;
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        fileContent = new StreamContent(e.File.OpenReadStream(maxFileSize));
+        nftImageFileName = e.File.Name;
+        Guid generatedGuid = Guid.NewGuid();
+        string guid = generatedGuid.ToString();
+        if(fileContent != null)
+        {
+            nftImageFileName = "Uploading NFT data...";
+            isUploading = true;
+            pinataNftImageData = await PinataService.SubmitNFTImage(await fileContent.ReadAsByteArrayAsync(), guid);
+            isUploading = false;
+            nftImageFileName = "NFT data uploaded...";
+        }
+        else
+        {
+            errorMessage = "Upload an image for your NFT!";
+        }
+    }
+}
