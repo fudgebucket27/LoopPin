@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using LoopPin.Models
 @using LoopPin.Services
+@using Newtonsoft.Json
+@using System.Text
 @inject PinataService PinataService;
 
 <PageTitle>Loop Pin</PageTitle>
@@ -8,6 +10,8 @@
 <MudText Typo="Typo.h3" GutterBottom="true">Welcome to Loop Pin</MudText>
 <MudText Typo="Typo.h6">This app will generate an IPFS CID for you to use to mint on Loopring</MudText>
 
+<MudTextField @bind-Value="nftName" Label="NFT Name (Mandatory)" Variant="Variant.Outlined" Disabled="@isUploading"></MudTextField>
+<MudTextField @bind-Value="nftDescription" Label="NFT Description (Mandatory)" Variant="Variant.Outlined" Disabled="@isUploading"></MudTextField>
 
 <InputFile id="fileInput" OnChange="UploadFiles" hidden />
 <MudFab HtmlTag="label"
@@ -19,40 +23,78 @@
 <br />
 
 
-@if(errorMessage !=null)
+@if (errorMessage != null)
 {
     <MudText Typo="Typo.h6">@errorMessage</MudText>
 }
 
-@if(pinataNftImageData != null)
+@if (pinataNftMetadataData != null)
 {
-    <MudText Typo="Typo.h6">IPFS CID Generated: @pinataNftImageData.IpfsHash</MudText>
+    <MudText Typo="Typo.h6">IPFS METADATA CID Generated: @pinataNftMetadataData.IpfsHash</MudText>
 }
 
 
 @code
 {
-    private IBrowserFile nftImagefile;
-    private PinataData pinataNftImageData;
+    private PinataData? pinataNftImageData;
+    private PinataData? pinataNftMetadataData;
     long maxFileSize = 1024 * 1024 * 15;
-    private string nftImageFileName = "Upload NFT Image";
+    private string nftImageFileName = "Click here to select the NFT Image";
     private string? errorMessage;
     private bool isUploading;
+    private string? nftName;
+    private string? nftDescription;
     private StreamContent? fileContent;
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
-        fileContent = new StreamContent(e.File.OpenReadStream(maxFileSize));
-        nftImageFileName = e.File.Name;
-        Guid generatedGuid = Guid.NewGuid();
-        string guid = generatedGuid.ToString();
-        if(fileContent != null)
+        if (String.IsNullOrEmpty(nftName) || String.IsNullOrEmpty(nftDescription))
         {
-            nftImageFileName = "Uploading NFT data...";
+            errorMessage = "You need to enter an NFT Name and Description";
+            return;
+        }
+        errorMessage = "";
+        fileContent = new StreamContent(e.File.OpenReadStream(maxFileSize));
+
+        if (fileContent != null)
+        {
+            nftImageFileName = e.File.Name;
+            Guid generatedGuidForImage = Guid.NewGuid();
+            string imageGuid = generatedGuidForImage.ToString();
+            nftImageFileName = "Uploading NFT Image...";
             isUploading = true;
-            pinataNftImageData = await PinataService.SubmitNFTImage(await fileContent.ReadAsByteArrayAsync(), guid);
+            pinataNftImageData = await PinataService.SubmitPin(await fileContent.ReadAsByteArrayAsync(), imageGuid);
+            nftImageFileName = "NFT Image Uploaded...";
+            if (pinataNftImageData != null)
+            {
+                NftMetadata nftMetadata = new NftMetadata
+                    {
+                        name = nftName,
+                        description = nftDescription,
+                        image = "ipfs://" + pinataNftImageData.IpfsHash
+                    };
+                Guid generatedGuidForMetadata = Guid.NewGuid();
+                string metadataGuidString = generatedGuidForMetadata.ToString();
+                MetadataGuid metadataGuid = new MetadataGuid
+                {
+                    name = metadataGuidString
+                };
+                string metadataGuidJsonString = JsonConvert.SerializeObject(metadataGuid);
+                string metaDataJsonString = JsonConvert.SerializeObject(nftMetadata);
+                byte[] metaDataByteArray = Encoding.ASCII.GetBytes(metaDataJsonString);
+                nftImageFileName = "Uploading NFT Metadata...";
+                pinataNftMetadataData = await PinataService.SubmitPin(metaDataByteArray, "metadata.json", true, metadataGuidJsonString);
+                if(pinataNftMetadataData != null)
+                {
+                    nftImageFileName = "NFT Metadata Uploaded...";
+                }
+                else
+                {
+                    nftImageFileName = "NFT Metadata failed to upload...";
+                }
+
+            }
             isUploading = false;
-            nftImageFileName = "NFT data uploaded...";
         }
         else
         {
