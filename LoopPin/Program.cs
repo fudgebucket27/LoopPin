@@ -1,3 +1,4 @@
+using LoopPin.Models;
 using LoopPin.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -19,6 +20,13 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    ApiKeyHelper._apiKey = Environment.GetEnvironmentVariable("APPSETTING_PINATAAPIKEY", EnvironmentVariableTarget.Machine);
+    ApiKeyHelper._apiKeySecret = Environment.GetEnvironmentVariable("APPSETTING_PINATAAPIKEYSECRET", EnvironmentVariableTarget.Machine);
+}
+else
+{
+    ApiKeyHelper._apiKey = Environment.GetEnvironmentVariable("PINATAAPIKEY", EnvironmentVariableTarget.Machine);
+    ApiKeyHelper._apiKeySecret = Environment.GetEnvironmentVariable("PINATAAPIKEYSECRET", EnvironmentVariableTarget.Machine);
 }
 
 app.UseHttpsRedirection();
