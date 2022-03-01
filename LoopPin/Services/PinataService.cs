@@ -4,7 +4,7 @@ using RestSharp;
 
 namespace LoopPin.Services
 {
-    public class PinataService
+    public class PinataService : IPinataService, IDisposable
     {
         const string _baseUrl = "https://api.pinata.cloud";
 
@@ -36,6 +36,12 @@ namespace LoopPin.Services
             {
                 return null;
             }
+        }
+
+        public void Dispose()
+        {
+            _client?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
