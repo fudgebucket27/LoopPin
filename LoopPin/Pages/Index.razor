@@ -81,16 +81,11 @@
                         image = "ipfs://" + pinataNftImageData.IpfsHash
                     };
                 Guid generatedGuidForMetadata = Guid.NewGuid();
-                string metadataGuidString = generatedGuidForMetadata.ToString();
-                MetadataGuid metadataGuid = new MetadataGuid
-                {
-                    name = metadataGuidString
-                };
-                string metadataGuidJsonString = JsonConvert.SerializeObject(metadataGuid);
+                string metadataGuid = generatedGuidForMetadata.ToString();
                 string metaDataJsonString = JsonConvert.SerializeObject(nftMetadata);
                 byte[] metaDataByteArray = Encoding.ASCII.GetBytes(metaDataJsonString);
                 nftImageFileName = "Uploading NFT Metadata...";
-                pinataNftMetadataData = await PinataService.SubmitPin(metaDataByteArray, "metadata.json", true, metadataGuidJsonString);
+                pinataNftMetadataData = await PinataService.SubmitPin(metaDataByteArray, metadataGuid);
                 if(pinataNftMetadataData != null)
                 {
                     nftImageFileName = "NFT Metadata Uploaded...";
