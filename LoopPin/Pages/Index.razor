@@ -12,6 +12,7 @@
 
 <MudTextField @bind-Value="nftName" Label="NFT Name (Mandatory)" Variant="Variant.Outlined" Disabled="@isUploading"></MudTextField>
 <MudTextField @bind-Value="nftDescription" Label="NFT Description (Mandatory)" Variant="Variant.Outlined" Disabled="@isUploading"></MudTextField>
+<MudTextField @bind-Value="nftRoyaltyPercentage" Label="NFT Royalty Percentage, (Between 0 - 10)(Mandatory)" Variant="Variant.Outlined" Disabled="@isUploading"></MudTextField>
 
 <InputFile id="fileInput" OnChange="UploadFiles" hidden />
 <MudFab HtmlTag="label"
@@ -44,6 +45,7 @@
     private bool isUploading;
     private string? nftName;
     private string? nftDescription;
+    private int nftRoyaltyPercentage = 6;
     private StreamContent? fileContent;
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
@@ -51,6 +53,12 @@
         if (String.IsNullOrEmpty(nftName) || String.IsNullOrEmpty(nftDescription))
         {
             errorMessage = "You need to enter an NFT Name and Description";
+            return;
+        }
+
+        if(nftRoyaltyPercentage > 10)
+        {
+            errorMessage = "NFT Royalty Percentage needs to be between 0 - 10";
             return;
         }
 
@@ -78,7 +86,8 @@
                     {
                         name = nftName,
                         description = nftDescription,
-                        image = "ipfs://" + pinataNftImageData.IpfsHash
+                        image = "ipfs://" + pinataNftImageData.IpfsHash,
+                        royalty_percentage = nftRoyaltyPercentage
                     };
                 Guid generatedGuidForMetadata = Guid.NewGuid();
                 string metadataGuidString = generatedGuidForMetadata.ToString();
